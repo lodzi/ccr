@@ -105,7 +105,7 @@ def next_campaign_id(df: pd.DataFrame) -> str:
 
 # --------- Session State Defaults ---------
 if "step" not in st.session_state:
-    st.session_state.step = "Campagne-info"
+    st.session_state.step = "Campaign info"
 if "info" not in st.session_state:
     df0 = load_ratings()
     st.session_state.info = {
@@ -138,11 +138,11 @@ try:
     )
 except Exception:
     # fallback to radio if segmented_control not available
-    st.session_state.step = st.radio("Stap", ["Campagne-info","Score","Output"], index=["Campagne-info","Score","Output"].index(st.session_state.step), horizontal=True)
+    st.session_state.step = st.radio("Stap", ["Campaign info","Score","Output"], index=["Campaign info","Score","Output"].index(st.session_state.step), horizontal=True)
 
-# --------- RENDER: Campagne-info ---------
-if st.session_state.step == "Campagne-info":
-    st.subheader("Campagne-info")
+# --------- RENDER: Campaign info ---------
+if st.session_state.step == "Campaign info":
+    st.subheader("Campaign info")
     c_left, c_right = st.columns(2)
     with c_left:
         st.session_state.info["campaign_id"] = st.text_input("Campaign ID *", value=st.session_state.info["campaign_id"])
