@@ -138,7 +138,7 @@ try:
     )
 except Exception:
     # fallback to radio if segmented_control not available
-    st.session_state.step = st.radio("Stap", ["Campaign info","Score","Output"], index=["Campaign info","Score","Output"].index(st.session_state.step), horizontal=True)
+    st.session_state.step = st.radio(" ", ["Campaign info","Score","Output"], index=["Campaign info","Score","Output"].index(st.session_state.step), horizontal=True)
 
 # --------- RENDER: Campaign info ---------
 if st.session_state.step == "Campaign info":
