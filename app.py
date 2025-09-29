@@ -132,7 +132,6 @@ st.title("Culturally Creative & Relevant Rater")
 # --------- Stepper (segmented control) ---------
 try:
     st.session_state.step = st.segmented_control(
-        "Stap",
         options=["Campagne-info","Score","Output"],
         default=st.session_state.step,
     )
@@ -150,14 +149,14 @@ if st.session_state.step == "Campagne-info":
         with bn1:
             st.session_state.info["brand"] = st.text_input("Brand", value=st.session_state.info["brand"])
         with bn2:
-            st.session_state.info["campaign_name"] = st.text_input("Naam", value=st.session_state.info["campaign_name"])
+            st.session_state.info["campaign_name"] = st.text_input("Name", value=st.session_state.info["campaign_name"])
         st.session_state.info["channel"] = st.selectbox("Channel", CHANNEL_OPTIONS, index=CHANNEL_OPTIONS.index(st.session_state.info["channel"]) if st.session_state.info["channel"] in CHANNEL_OPTIONS else 0)
     with c_right:
-        st.session_state.info["scene_audience_choice"] = st.selectbox("Scene / Audience", AUDIENCE_OPTIONS, index=AUDIENCE_OPTIONS.index(st.session_state.info["scene_audience_choice"]) if st.session_state.info["scene_audience_choice"] in AUDIENCE_OPTIONS else 0)
+        st.session_state.info["scene_audience_choice"] = st.selectbox("Audience", AUDIENCE_OPTIONS, index=AUDIENCE_OPTIONS.index(st.session_state.info["scene_audience_choice"]) if st.session_state.info["scene_audience_choice"] in AUDIENCE_OPTIONS else 0)
         if st.session_state.info["scene_audience_choice"] == "Other...":
             st.session_state.info["scene_audience_custom"] = st.text_input("Custom audience", value=st.session_state.info["scene_audience_custom"])
         st.session_state.info["country"] = st.text_input("Country", value=st.session_state.info["country"])
-        st.session_state.info["submit_date_iso"] = st.text_input("Date (YYYY-MM-DD)", value=st.session_state.info["submit_date_iso"])
+        st.session_state.info["submit_date_iso"] = st.text_input("Date", value=st.session_state.info["submit_date_iso"])
         st.session_state.info["rater_id"] = st.selectbox("Rater", ["Lode","Maarten"], index=["Lode","Maarten"].index(st.session_state.info["rater_id"]) if st.session_state.info["rater_id"] in ["Lode","Maarten"] else 0)
     st.session_state.info["asset_youtube_url"] = st.text_input("YouTube URL (optioneel)", value=st.session_state.info["asset_youtube_url"], placeholder="https://www.youtube.com/watch?v=...")
     st.session_state.info["rater_notes"] = st.text_area("Rater notes", value=st.session_state.info["rater_notes"], height=90, placeholder="Kernobservaties, insider cues, etc.")
