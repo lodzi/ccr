@@ -133,12 +133,12 @@ st.title("Culturally Creative & Relevant Rater")
 try:
     st.session_state.step = st.segmented_control(
         " ",
-        options=["Campagne-info","Score","Output"],
+        options=["Campaign Info","Score","Output"],
         default=st.session_state.step,
     )
 except Exception:
     # fallback to radio if segmented_control not available
-    st.session_state.step = st.radio("Stap", ["Campaign info","Score","Output"], index=["Campagne-info","Score","Output"].index(st.session_state.step), horizontal=True)
+    st.session_state.step = st.radio("Stap", ["Campagne-info","Score","Output"], index=["Campagne-info","Score","Output"].index(st.session_state.step), horizontal=True)
 
 # --------- RENDER: Campagne-info ---------
 if st.session_state.step == "Campagne-info":
@@ -159,7 +159,7 @@ if st.session_state.step == "Campagne-info":
             st.session_state.info["scene_audience_custom"] = st.text_input("Custom audience", value=st.session_state.info["scene_audience_custom"])
         st.session_state.info["country"] = st.text_input("Country", value=st.session_state.info["country"])
         st.session_state.info["submit_date_iso"] = st.text_input("Date", value=st.session_state.info["submit_date_iso"])
-    st.session_state.info["asset_youtube_url"] = st.text_input("YouTube URL (optioneel)", value=st.session_state.info["asset_youtube_url"], placeholder="https://www.youtube.com/watch?v=...")
+    st.session_state.info["asset_youtube_url"] = st.text_input("YouTube URL (optional)", value=st.session_state.info["asset_youtube_url"], placeholder="https://www.youtube.com/watch?v=...")
     st.session_state.info["rater_notes"] = st.text_area("Rater notes", value=st.session_state.info["rater_notes"], height=90, placeholder="Kernobservaties, insider cues, etc.")
 
     if st.button("Volgende →", type="primary"):
