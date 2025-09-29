@@ -162,7 +162,7 @@ if st.session_state.step == "Campaign info":
     st.session_state.info["asset_youtube_url"] = st.text_input("YouTube URL (optional)", value=st.session_state.info["asset_youtube_url"], placeholder="https://www.youtube.com/watch?v=...")
     st.session_state.info["rater_notes"] = st.text_area("Rater notes", value=st.session_state.info["rater_notes"], height=90, placeholder="Kernobservaties, insider cues, etc.")
 
-    if st.button("Volgende →", type="primary"):
+    if st.button("Next →", type="primary"):
         st.session_state.step = "Score"
         st.rerun()
 
