@@ -132,7 +132,7 @@ st.title("Culturally Creative & Relevant Rater")
 # --------- Stepper (segmented control) ---------
 try:
     st.session_state.step = st.segmented_control(
-        "stap",
+        " ",
         options=["Campagne-info","Score","Output"],
         default=st.session_state.step,
     )
