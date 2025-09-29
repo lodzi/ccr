@@ -132,7 +132,7 @@ st.title("Culturally Creative & Relevant Rater")
 # --------- Stepper (segmented control) ---------
 try:
     st.session_state.step = st.segmented_control(
-        "Stap",
+        " ",
         options=["Campagne-info","Score","Output"],
         default=st.session_state.step,
     )
@@ -158,7 +158,7 @@ if st.session_state.step == "Campagne-info":
             st.session_state.info["scene_audience_custom"] = st.text_input("Custom audience", value=st.session_state.info["scene_audience_custom"])
         st.session_state.info["country"] = st.text_input("Country", value=st.session_state.info["country"])
         st.session_state.info["submit_date_iso"] = st.text_input("Date", value=st.session_state.info["submit_date_iso"])
-        st.session_state.info["rater_id"] = st.selectbox("Rater", ["Lode","Maarten"], index=["Lode","Maarten"].index(st.session_state.info["rater_id"]) if st.session_state.info["rater_id"] in ["Lode","Maarten"] else 0)
+        st.session_state.info["rater_id"] = st.selectbox("Rated by", ["Lode","Maarten"], index=["Lode","Maarten"].index(st.session_state.info["rater_id"]) if st.session_state.info["rater_id"] in ["Lode","Maarten"] else 0)
     st.session_state.info["asset_youtube_url"] = st.text_input("YouTube URL (optioneel)", value=st.session_state.info["asset_youtube_url"], placeholder="https://www.youtube.com/watch?v=...")
     st.session_state.info["rater_notes"] = st.text_area("Rater notes", value=st.session_state.info["rater_notes"], height=90, placeholder="Kernobservaties, insider cues, etc.")
 
