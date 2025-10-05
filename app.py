@@ -5,15 +5,36 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
+def _youtube_iframe(url: str, width: int = 308, height: int = 173) -> str:
+    if not url:
+        return ""
+    # Extract video id from various URL formats
+    patterns = [
+        r"(?:v=|vi=)([A-Za-z0-9_-]{11})",
+        r"(?:youtu\.be/)([A-Za-z0-9_-]{11})",
+        r"(?:embed/)([A-Za-z0-9_-]{11})"
+    ]
+    vid = None
+    for p in patterns:
+        m = re.search(p, url)
+        if m:
+            vid = m.group(1)
+            break
+    if not vid:
+        return ""
+    src = f"https://www.youtube.com/embed/{vid}"
+    return f'<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:12px;"><iframe src="{src}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe></div>'
+
+
 st.set_page_config(page_title="Culturally Creative & Relevant Rater", page_icon="🗂️", layout="wide")
 
 DATA_DIR = "data"
 RATINGS_CSV = os.path.join(DATA_DIR, "CCR_ratings.csv")
 RESULTS_CSV = os.path.join(DATA_DIR, "CCR_results.csv")
 WEIGHTS_JSON = os.path.join(DATA_DIR, "CCR_default_weights.json")
-
 os.makedirs(DATA_DIR, exist_ok=True)
 
+# Default weights (12 dimensions)
 DEFAULT_WEIGHTS = {
   "CR_cultural_resonance": 0.18,
   "OR_originality": 0.12,
@@ -32,7 +53,9 @@ if os.path.exists(WEIGHTS_JSON):
     try:
         with open(WEIGHTS_JSON, "r", encoding="utf-8") as f:
             w = json.load(f)
-            DEFAULT_WEIGHTS.update({k: float(v) for k,v in w.items() if k in DEFAULT_WEIGHTS})
+            for k,v in w.items():
+                if k in DEFAULT_WEIGHTS:
+                    DEFAULT_WEIGHTS[k] = float(v)
     except Exception:
         pass
 
@@ -55,13 +78,10 @@ LABELS = {
 }
 
 CHANNEL_OPTIONS = ["TikTok","Instagram","YouTube","OOH","TV","Radio","Integrated","Other"]
-AUDIENCE_OPTIONS = [
-    "BE urban 16-24","BE Gen Z 18-24","BE mainstream 25-44",
-    "NL mainstream 25-44","EU mainstream 25-44","FR urban 18-34","DE mainstream 18-49",
-    "Other..."
-]
+AUDIENCE_OPTIONS = ["BE urban 16-24","BE Gen Z 18-24","BE mainstream 25-44","NL mainstream 25-44","EU mainstream 25-44","FR urban 18-34","DE mainstream 18-49","Other..."]
 RATER_OPTIONS = ["Lode","Maarten"]
 
+# ----------------- Helpers -----------------
 def ensure_csv(path):
     if not os.path.exists(path):
         cols = ["campaign_id","rater_id","rater_notes",
@@ -102,10 +122,10 @@ def _concave(x100, gamma=0.85):
     return 100.0 * y01
 
 def _risk_penalty(flags):
-    f = int(flags.get("flag_stereotype", 0)) + int(flags.get("flag_misappropriation", 0)) \
-        + int(flags.get("flag_sensitive_timing", 0)) + int(flags.get("flag_other_risk", 0))
+    f = int(flags.get("flag_stereotype", 0)) + int(flags.get("flag_misappropriation", 0)) + int(flags.get("flag_sensitive_timing", 0)) + int(flags.get("flag_other_risk", 0))
     p = -3.0 * f
-    if f >= 2: p += -4.0
+    if f >= 2:
+        p += -4.0
     p += -12.0 * float(flags.get("neg_sentiment_ratio_estimate", 0.0))
     return p
 
@@ -129,43 +149,85 @@ def live_ccr_preview(scores: dict, flags: dict) -> float:
     return compute_ccr_single(scores, DEFAULT_WEIGHTS, flags)
 
 def compute_results(weights: dict = None) -> pd.DataFrame:
-    if weights is None: weights = DEFAULT_WEIGHTS
+    if weights is None:
+        weights = DEFAULT_WEIGHTS
     df = load_ratings()
-    if df.empty: return pd.DataFrame()
+    if df.empty:
+        return pd.DataFrame()
     for c in FLAG_COLS:
-        if c not in df.columns: df[c] = 0
+        if c not in df.columns:
+            df[c] = 0
     def row_ccr(row):
         scores = {d: row.get(d, 3.0) for d in DIMENSIONS}
         flags = {c: row.get(c, 0) for c in FLAG_COLS}
         return compute_ccr_single(scores, weights, flags)
     df["CCR_rater"] = df.apply(row_ccr, axis=1)
+    # mild rater debias
     if "rater_id" in df.columns and df["rater_id"].notna().any():
         z = df.groupby("rater_id")["CCR_rater"].transform(lambda s: (s - s.mean()) / (s.std(ddof=0) + 1e-9))
         df["CCR_rater"] = 0.85*df["CCR_rater"] + 0.15*(50 + 10*z)
-    agg = {**{d: "mean" for d in DIMENSIONS}, **{c: "mean" for c in FLAG_COLS}, "CCR_rater":"mean",
+    agg = {**{d: "mean" for d in DIMENSIONS},
+           **{c: "mean" for c in FLAG_COLS},
+           "CCR_rater": "mean",
            "campaign_name":"first","brand":"first","channel":"first","scene_audience":"first","country":"first","asset_youtube_url":"first"}
     grouped = df.groupby("campaign_id", dropna=False).agg(agg).reset_index()
     grouped.rename(columns={"CCR_rater":"CCR_mean"}, inplace=True)
     grouped.to_csv(RESULTS_CSV, index=False)
     return grouped
 
-# Session state
-if "step" not in st.session_state: st.session_state.step = "Campaign Information"
+# ----------------- State -----------------
+if "step" not in st.session_state:
+    st.session_state.step = "Campaign Information"
 if "info" not in st.session_state:
     df0 = load_ratings()
     st.session_state.info = {
         "campaign_id": next_campaign_id(df0),
-        "campaign_name": "", "brand": "", "channel": CHANNEL_OPTIONS[0],
-        "scene_audience_choice": AUDIENCE_OPTIONS[0], "scene_audience_custom": "",
-        "country": "BE", "submit_date_iso": str(date.today()),
-        "asset_youtube_url": "", "rater_id": "Lode", "rater_notes": "",
+        "campaign_name": "",
+        "brand": "",
+        "channel": CHANNEL_OPTIONS[0],
+        "scene_audience_choice": AUDIENCE_OPTIONS[0],
+        "scene_audience_custom": "",
+        "country": "BE",
+        "submit_date_iso": str(date.today()),
+        "asset_youtube_url": "",
+        "rater_id": "Lode",
+        "rater_notes": "",
     }
-if "scores" not in st.session_state: st.session_state.scores = {d: 3.0 for d in DIMENSIONS}
-if "risks" not in st.session_state: st.session_state.risks = {"flag_stereotype":0,"flag_misappropriation":0,"flag_sensitive_timing":0,"flag_other_risk":0,"neg_sentiment_ratio_estimate":0.0}
+if "scores" not in st.session_state:
+    st.session_state.scores = {d: 3.0 for d in DIMENSIONS}
+if "risks" not in st.session_state:
+    st.session_state.risks = {"flag_stereotype":0,"flag_misappropriation":0,"flag_sensitive_timing":0,"flag_other_risk":0,"neg_sentiment_ratio_estimate":0.0}
 
-# Title & CSS
+# ----------------- CSS (fixed right panel) -----------------
+st.markdown("""
+<style>
+@media (min-width: 1100px) {
+  section.main > div.block-container > div:first-child { max-width: 900px; margin-right: 400px; }
+  section.main > div.block-container { padding-right: 380px !important; }
+}
+#fixed-live-panel {
+  position: fixed; top: 90px; right: 16px; width: 340px;
+  max-height: calc(100vh - 120px); overflow: auto; padding: 16px;
+  border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  background: white; z-index: 999; border: 1px solid rgba(0,0,0,0.06);
+}
+html[data-theme="dark"] #fixed-live-panel {
+  background: #262730; border-color: rgba(255,255,255,0.08);
+}
+@media (max-width: 1099px) {
+  #fixed-live-panel { display: none; }
+  section.main > div.block-container { padding-right: 1.5rem !important; }
+}
+
+/* Ensure the parameter section never goes under the fixed panel */
+@media (min-width: 1100px) {
+  #left-params { max-width: 900px; margin-right: 420px; }
+}
+</style>
+""", unsafe_allow_html=True)
+
 st.title("Culturally Creative & Relevant Rater")
-st.markdown("<style>.sticky-right{position:sticky;top:12px;}</style>", unsafe_allow_html=True)
+st.markdown("<p style='color:gray; font-style:italic; margin-top:-10px;'>by Defiant</p>", unsafe_allow_html=True)
 
 # Stepper
 try:
@@ -174,7 +236,7 @@ except Exception:
     st.session_state.step = st.radio("Step", ["Campaign Information","Evaluation","Results"],
                                      index=["Campaign Information","Evaluation","Results"].index(st.session_state.step), horizontal=True)
 
-# Campaign Information
+# ----------------- Campaign Information -----------------
 if st.session_state.step == "Campaign Information":
     st.subheader("Campaign Information")
     c_left, c_right = st.columns(2)
@@ -201,61 +263,77 @@ if st.session_state.step == "Campaign Information":
                                                                placeholder="https://www.youtube.com/watch?v=...")
     st.session_state.info["rater_notes"] = st.text_area("Rater notes", value=st.session_state.info["rater_notes"],
                                                         height=90, placeholder="Key observations, insider cues, etc.")
+
     if st.button("Next →", type="primary"):
         st.session_state.step = "Evaluation"
         st.rerun()
 
-# Evaluation
+# ----------------- Evaluation -----------------
 elif st.session_state.step == "Evaluation":
     st.subheader("Evaluation")
-    left, right = st.columns([1.65, 1])
-    with left:
-        for d in DIMENSIONS:
-            title, desc = LABELS[d]
-            st.markdown(f"**{title}**")
-            st.caption(desc)
-            st.session_state.scores[d] = st.slider("", 1.0, 5.0, st.session_state.scores[d], 0.5, key=f"score_{d}")
-        r1, r2, r3, r4 = st.columns(4)
-        with r1: st.session_state.risks["flag_stereotype"] = int(st.checkbox("Stereotype", value=bool(st.session_state.risks["flag_stereotype"])))
-        with r2: st.session_state.risks["flag_misappropriation"] = int(st.checkbox("Misappropriation", value=bool(st.session_state.risks["flag_misappropriation"])))
-        with r3: st.session_state.risks["flag_sensitive_timing"] = int(st.checkbox("Sensitive timing", value=bool(st.session_state.risks["flag_sensitive_timing"])))
-        with r4: st.session_state.risks["flag_other_risk"] = int(st.checkbox("Other risk", value=bool(st.session_state.risks["flag_other_risk"])))
-        st.session_state.risks["neg_sentiment_ratio_estimate"] = st.slider("Negative sentiment ratio (0–1)", 0.0, 1.0, float(st.session_state.risks["neg_sentiment_ratio_estimate"]), 0.01)
-        st.write("")
-        if st.button("Save evaluation", type="primary"):
-            info = st.session_state.info
-            audience = info["scene_audience_custom"] if info["scene_audience_choice"] == "Other..." else info["scene_audience_choice"]
-            if not info["campaign_id"].strip():
-                st.error("Campaign ID is required.")
-            else:
-                row = {"campaign_id": info["campaign_id"].strip(),
-                       "campaign_name": info["campaign_name"].strip(),
-                       "brand": info["brand"].strip(),
-                       "channel": info["channel"],
-                       "scene_audience": audience.strip(),
-                       "country": info["country"].strip(),
-                       "submit_date_iso": info["submit_date_iso"].strip(),
-                       "asset_youtube_url": info["asset_youtube_url"].strip(),
-                       "rater_id": info["rater_id"],
-                       "rater_notes": info["rater_notes"],
-                       **st.session_state.scores, **st.session_state.risks}
-                save_rating(row)
-                df_after = load_ratings()
-                st.session_state.info["campaign_id"] = next_campaign_id(df_after)
-                st.success("Saved.")
-                st.session_state.step = "Results"
-                st.rerun()
-    with right:
-        st.markdown('<div class="sticky-right">', unsafe_allow_html=True)
-        live = live_ccr_preview(st.session_state.scores, st.session_state.risks)
-        st.subheader("📊 Live CCR")
-        st.markdown(f"<div style='font-size:72px;font-weight:800;line-height:1;'> {live:.0f}% </div>", unsafe_allow_html=True)
-        st.caption("Weighted by the improved algorithm")
-        if st.session_state.info["asset_youtube_url"]:
-            st.markdown("---"); st.caption("YouTube preview"); st.video(st.session_state.info["asset_youtube_url"])
-        st.markdown('</div>', unsafe_allow_html=True)
 
-# Results
+    # Fixed right panel (render first)
+    live = live_ccr_preview(st.session_state.scores, st.session_state.risks)
+    panel_html = f"""
+    <div id=\"fixed-live-panel\">
+      <h3 style=\"margin-top:0;\">📊 Live CCR</h3>
+      <div style=\"font-size:72px;font-weight:800;line-height:1;margin-bottom:8px;\">{live:.0f}%</div>
+      <div style=\"opacity:.8;margin-bottom:10px;\">Weighted by the improved algorithm</div>
+    """
+    if st.session_state.info.get("asset_youtube_url"):
+        panel_html += "<hr style='opacity:.2;'><div style='opacity:.8;margin-bottom:6px;'>YouTube preview</div>"
+        iframe = _youtube_iframe(st.session_state.info["asset_youtube_url"])
+        if iframe:
+            panel_html += iframe
+    st.markdown(panel_html + "</div>", unsafe_allow_html=True)
+
+    # Sliders
+    for d in DIMENSIONS:
+        title, desc = LABELS[d]
+        st.markdown(f"**{title}**")
+        st.caption(desc)
+        st.session_state.scores[d] = st.slider("", 1.0, 5.0, st.session_state.scores[d], 0.5, key=f"score_{d}")
+
+    # Risks
+    r1, r2, r3, r4 = st.columns(4)
+    with r1:
+        st.session_state.risks["flag_stereotype"] = int(st.checkbox("Stereotype", value=bool(st.session_state.risks["flag_stereotype"])))
+    with r2:
+        st.session_state.risks["flag_misappropriation"] = int(st.checkbox("Misappropriation", value=bool(st.session_state.risks["flag_misappropriation"])))
+    with r3:
+        st.session_state.risks["flag_sensitive_timing"] = int(st.checkbox("Sensitive timing", value=bool(st.session_state.risks["flag_sensitive_timing"])))
+    with r4:
+        st.session_state.risks["flag_other_risk"] = int(st.checkbox("Other risk", value=bool(st.session_state.risks["flag_other_risk"])))
+    st.session_state.risks["neg_sentiment_ratio_estimate"] = st.slider("Negative sentiment ratio (0–1)", 0.0, 1.0, float(st.session_state.risks["neg_sentiment_ratio_estimate"]), 0.01)
+
+    if st.button("Save evaluation", type="primary"):
+        info = st.session_state.info
+        audience = info["scene_audience_custom"] if info["scene_audience_choice"] == "Other..." else info["scene_audience_choice"]
+        row = {
+            "campaign_id": info["campaign_id"].strip(),
+            "campaign_name": info["campaign_name"].strip(),
+            "brand": info["brand"].strip(),
+            "channel": info["channel"],
+            "scene_audience": audience.strip(),
+            "country": info["country"].strip(),
+            "submit_date_iso": info["submit_date_iso"].strip(),
+            "asset_youtube_url": info["asset_youtube_url"].strip(),
+            "rater_id": info["rater_id"],
+            "rater_notes": info["rater_notes"],
+            **st.session_state.scores,
+            **st.session_state.risks,
+        }
+        if not row["campaign_id"]:
+            st.error("Campaign ID is required.")
+        else:
+            save_rating(row)
+            df_after = load_ratings()
+            st.session_state.info["campaign_id"] = next_campaign_id(df_after)
+            st.success("Saved. Moving to Results…")
+            st.session_state.step = "Results"
+            st.rerun()
+
+# ----------------- Results -----------------
 else:
     st.subheader("Results")
     st.markdown("**Dataset (all evaluations)**")
@@ -269,3 +347,5 @@ else:
                            file_name="CCR_results.csv", mime="text/csv")
     else:
         st.info("No results yet — add at least one evaluation.")
+
+st.markdown("<hr style='opacity:0.2;margin-top:60px;'><p style='text-align:center;color:gray;'>&copy; Defiant 2025</p>", unsafe_allow_html=True)

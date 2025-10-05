@@ -1,4 +1,5 @@
-# Culturally Creative & Relevant Rater (English, improved algorithm)
+
+# Culturally Creative & Relevant Rater (Full Version)
 
 ## Run locally
 ```bash
