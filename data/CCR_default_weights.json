@@ -1,9 +1,14 @@
 {
-  "CR_cultural_resonance": 0.22,
-  "OR_originality": 0.18,
-  "TI_timeliness": 0.12,
-  "IE_inclusivity_ethics": 0.1,
-  "SH_shareability": 0.15,
-  "BF_brand_channel_fit": 0.13,
-  "CQ_craft_quality": 0.1
+  "CR_cultural_resonance": 0.18,
+  "OR_originality": 0.12,
+  "TI_timeliness": 0.1,
+  "IE_inclusivity_ethics": 0.08,
+  "SH_shareability": 0.1,
+  "BF_brand_channel_fit": 0.08,
+  "CQ_craft_quality": 0.08,
+  "AU_authenticity_voice": 0.06,
+  "EM_emotional_impact": 0.06,
+  "NA_narrative_strength": 0.05,
+  "PN_platform_nativeness": 0.05,
+  "CC_cultural_contribution": 0.04
 }
