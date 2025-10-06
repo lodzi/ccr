@@ -7,22 +7,68 @@ from .components import youtube_iframe
 def inject_css():
     st.markdown("""
     <style>
+    /* General background styling */
+    body {
+      background-image: url('https://images.squarespace-cdn.com/content/656f4766399d5a077e14dd00/5d9b780f-b6bc-46c6-bc5f-94134bc6ce62/bg.png');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      background-repeat: no-repeat;
+    }
+
+    /* Streamlit containers: add semi-transparent overlay for readability */
+    section.main > div.block-container {
+      background: rgba(255, 255, 255, 0.80);
+      backdrop-filter: blur(6px);
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    }
+
+    /* Dark mode adaptation */
+    html[data-theme="dark"] section.main > div.block-container {
+      background: rgba(20, 20, 20, 0.75);
+      color: #f2f2f2;
+    }
+
+    /* Fixed right panel (live score) */
+    #fixed-live-panel {
+      position: fixed;
+      top: 90px;
+      right: 16px;
+      width: 340px;
+      max-height: calc(100vh - 120px);
+      overflow: auto;
+      padding: 16px;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+      background: rgba(255,255,255,0.85);
+      border: 1px solid rgba(0,0,0,0.06);
+      backdrop-filter: blur(6px);
+      z-index: 999;
+    }
+
+    html[data-theme="dark"] #fixed-live-panel {
+      background: rgba(38,39,48,0.85);
+      border-color: rgba(255,255,255,0.08);
+    }
+
     @media (min-width: 1100px) {
       section.main > div.block-container { padding-right: 420px !important; }
+      #left-params { max-width: 900px; margin-right: 440px; }
     }
-    #fixed-live-panel {
-      position: fixed; top: 90px; right: 16px; width: 340px;
-      max-height: calc(100vh - 120px); overflow: auto; padding: 16px;
-      border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-      background: white; z-index: 999; border: 1px solid rgba(0,0,0,0.06);
+
+    @media (max-width: 1099px) {
+      #fixed-live-panel { display: none; }
+      section.main > div.block-container { padding-right: 1.5rem !important; }
     }
-    html[data-theme="dark"] #fixed-live-panel { background: #262730; border-color: rgba(255,255,255,0.08); }
-    @media (min-width: 1100px) { #left-params { max-width: 900px; margin-right: 440px; } }
-    @media (max-width: 1099px) { #fixed-live-panel { display: none; } section.main > div.block-container { padding-right: 1.5rem !important; } }
+
+    /* Hide Streamlit sidebar completely */
     section[data-testid="stSidebar"] { display: none !important; }
     div[data-testid="collapsedControl"] { display: none !important; }
     </style>
     """, unsafe_allow_html=True)
+
 
 def header():
     st.title("Culturally Creative & Relevant Rater")
