@@ -33,18 +33,18 @@ DIMENSIONS = list(DEFAULT_WEIGHTS.keys())
 FLAG_COLS = ["flag_stereotype","flag_misappropriation","flag_sensitive_timing","flag_other_risk","neg_sentiment_ratio_estimate"]
 
 LABELS = {
-    "CR_cultural_resonance": ("Cultural Resonance","Does it truly tap into the audience’s culture/scene? Insider cues, language, symbols."),
-    "OR_originality": ("Originality","Is the concept surprising and fresh vs. prior work?"),
-    "TI_timeliness": ("Timeliness","Is the timing right with trends, moments or seasons?"),
-    "IE_inclusivity_ethics": ("Inclusivity & Ethics","Respectful and inclusive; no stereotypes or appropriation."),
-    "SH_shareability": ("Shareability","Likely to be shared/remixed? Hooks, quotables, participatory formats."),
-    "BF_brand_channel_fit": ("Brand & Channel Fit","Matches brand codes and exploits the channel’s strengths."),
-    "CQ_craft_quality": ("Craft Quality","Execution: visuals, copy, sound, edit, pacing."),
-    "AU_authenticity_voice": ("Authenticity / Voice","Does it feel credible and ‘of the culture’ rather than forced?"),
-    "EM_emotional_impact": ("Emotional Impact","Does it trigger emotion (humor, awe, tension, empathy)?"),
-    "NA_narrative_strength": ("Narrative Strength","Is there a memorable story/arc people can retell?"),
-    "PN_platform_nativeness": ("Platform-Nativeness","Is it designed for the platform (not a generic port)?"),
-    "CC_cultural_contribution": ("Cultural Contribution","Does it add something new (meme, slogan, norm) to culture?"),
+    "CR_cultural_resonance": ("Cultural Resonance","How well the campaign taps into the audience’s cultural context, language, and symbols."),
+    "OR_originality": ("Originality","Freshness and novelty of the concept compared to existing cultural work."),
+    "TI_timeliness": ("Timeliness","Relevance to current trends, moments, or social context."),
+    "IE_inclusivity_ethics": ("Inclusivity & Ethics","Sensitivity, fairness, and avoidance of stereotypes or appropriation."),
+    "SH_shareability": ("Shareability","Likelihood of being shared, remixed, or reinterpreted."),
+    "BF_brand_channel_fit": ("Brand & Channel Fit","How well the idea fits the brand voice and leverages the medium."),
+    "CQ_craft_quality": ("Craft Quality","Overall execution quality: copywriting, visuals, sound, editing, rhythm."),
+    "AU_authenticity_voice": ("Authenticity / Voice","Cultural credibility—feels organic and truthful rather than imposed."),
+    "EM_emotional_impact": ("Emotional Impact","Strength of emotion triggered—humor, empathy, awe, tension."),
+    "NA_narrative_strength": ("Narrative Strength","Clarity and memorability of the story or idea arc."),
+    "PN_platform_nativeness": ("Platform Nativeness","Designed specifically for the platform, not a cross-post."),
+    "CC_cultural_contribution": ("Cultural Contribution","Adds new cultural meaning—a phrase, visual code, or behavior."),
 }
 
 def _to_0_100(x):

@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 
-st.set_page_config(page_title="How the CCR Algorithm Works", page_icon="🧪", layout="wide")
+st.set_page_config(page_title="How the CCR Algorithm Works", layout="wide")
 st.title("How the CCR Algorithm Works")
 
 st.markdown("""
@@ -60,7 +60,7 @@ The algorithm then applies several steps to produce a consistent and interpretab
 
 6. **Final CCR Score**  
    All values are summed, adjusted for boosts and penalties, and then clamped between 0 and 100.  
-   The result represents the campaign’s **Cultural Creativity & Relevance** percentage.
+   The result represents the campaign’s Cultural Creativity & Relevance percentage.
 
 ---
 ### Version and Improvement
@@ -68,12 +68,9 @@ The algorithm then applies several steps to produce a consistent and interpretab
 This framework is a living system. It will evolve through dialogue, data, and collective feedback.  
 If you believe the weighting should shift, or that new dimensions should be considered, you are welcome to share suggestions.
 
-**Feedback and collaboration:** [hello@thisisdefiant.com](mailto:hello@thisisdefiant.com)
-
----
+Feedback and collaboration: hello@thisisdefiant.com
 """)
 
-# Back button
 st.markdown(
     """
     <div style='text-align:center; margin-top:40px;'>
