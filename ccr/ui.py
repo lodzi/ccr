@@ -122,7 +122,7 @@ def footer():
       Have suggestions about the algorithm? 
       <a href='mailto:hello@thisisdefiant.com' style='color:inherit;text-decoration:underline;'>Tell us what you think</a>
       or learn more in 
-      <a href='pages/01_How_the_Algorithm_Works.py' style='color:inherit;text-decoration:underline;'>How the Algorithm Works</a>.
+      <a href='/How_the_Algorithm_Works' style='color:inherit;text-decoration:underline;'>How the Algorithm Works</a>.
     </div>
     <p style='text-align:center;color:gray;'>© Defiant 2025</p>
     """, unsafe_allow_html=True)
